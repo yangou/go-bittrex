@@ -49,115 +49,140 @@ type Bittrex struct {
 }
 
 // GetDistribution is used to get the distribution.
-func (b *Bittrex) GetDistribution(market string) (distribution Distribution, err error) {
+func (b *Bittrex) GetDistribution(market string) (*Distribution, error) {
 	r, err := b.client.do("GET", "https://bittrex.com/Api/v2.0/pub/currency/GetBalanceDistribution?currencyName="+strings.ToUpper(market), "", false)
 	if err != nil {
-		return
+		return nil, err
 	}
 
 	var response jsonResponse
 	if err = json.Unmarshal(r, &response); err != nil {
-		return
+		return nil, err
 	}
 
 	if err = handleErr(response); err != nil {
-		return
+		return nil, err
 	}
-	err = json.Unmarshal(response.Result, &distribution)
-	return
 
+	distribution := Distribution{}
+	if err = json.Unmarshal(response.Result, &distribution); err != nil {
+		return nil, err
+	}
+
+	return &distribution, nil
 }
 
 // GetCurrencies is used to get all supported currencies at Bittrex along with other meta data.
-func (b *Bittrex) GetCurrencies() (currencies []Currency, err error) {
+func (b *Bittrex) GetCurrencies() ([]*Currency, error) {
 	r, err := b.client.do("GET", "public/getcurrencies", "", false)
 	if err != nil {
-		return
+		return nil, err
 	}
 	var response jsonResponse
 	if err = json.Unmarshal(r, &response); err != nil {
-		return
+		return nil, err
 	}
 	if err = handleErr(response); err != nil {
-		return
+		return nil, err
 	}
-	err = json.Unmarshal(response.Result, &currencies)
-	return
+	currencies := []*Currency{}
+	if err = json.Unmarshal(response.Result, &currencies); err != nil {
+		return nil, err
+	}
+
+	return currencies, nil
 }
 
 // GetMarkets is used to get the open and available trading markets at Bittrex along with other meta data.
-func (b *Bittrex) GetMarkets() (markets []Market, err error) {
+func (b *Bittrex) GetMarkets() ([]*Market, error) {
 	r, err := b.client.do("GET", "public/getmarkets", "", false)
 	if err != nil {
-		return
+		return nil, err
 	}
 	var response jsonResponse
 	if err = json.Unmarshal(r, &response); err != nil {
-		return
+		return nil, err
 	}
 	if err = handleErr(response); err != nil {
-		return
+		return nil, err
 	}
-	err = json.Unmarshal(response.Result, &markets)
-	return
+
+	markets := []*Market{}
+	if err = json.Unmarshal(response.Result, &markets); err != nil {
+		return nil, err
+	}
+
+	return markets, nil
 }
 
 // GetTicker is used to get the current ticker values for a market.
-func (b *Bittrex) GetTicker(market string) (ticker Ticker, err error) {
+func (b *Bittrex) GetTicker(market string) (*Ticker, error) {
 	r, err := b.client.do("GET", "public/getticker?market="+strings.ToUpper(market), "", false)
 	if err != nil {
-		return
+		return nil, err
 	}
 	var response jsonResponse
 	if err = json.Unmarshal(r, &response); err != nil {
-		return
+		return nil, err
 	}
 	if err = handleErr(response); err != nil {
-		return
+		return nil, err
 	}
-	err = json.Unmarshal(response.Result, &ticker)
-	return
+
+	ticker := Ticker{}
+	if err = json.Unmarshal(response.Result, &ticker); err != nil {
+		return nil, err
+	}
+	return &ticker, nil
 }
 
 // GetMarketSummaries is used to get the last 24 hour summary of all active exchanges
-func (b *Bittrex) GetMarketSummaries() (marketSummaries []MarketSummary, err error) {
+func (b *Bittrex) GetMarketSummaries() ([]*MarketSummary, error) {
 	r, err := b.client.do("GET", "public/getmarketsummaries", "", false)
 	if err != nil {
-		return
+		return nil, err
 	}
 	var response jsonResponse
 	if err = json.Unmarshal(r, &response); err != nil {
-		return
+		return nil, err
 	}
 	if err = handleErr(response); err != nil {
-		return
+		return nil, err
 	}
-	err = json.Unmarshal(response.Result, &marketSummaries)
-	return
+	marketSummaries := []*MarketSummary{}
+	if err = json.Unmarshal(response.Result, &marketSummaries); err != nil {
+		return nil, err
+	}
+	return marketSummaries, nil
 }
 
 // GetMarketSummary is used to get the last 24 hour summary for a given market
-func (b *Bittrex) GetMarketSummary(market string) (marketSummary []MarketSummary, err error) {
+func (b *Bittrex) GetMarketSummary(market string) ([]*MarketSummary, error) {
 	r, err := b.client.do("GET", fmt.Sprintf("public/getmarketsummary?market=%s", strings.ToUpper(market)), "", false)
 	if err != nil {
-		return
+		return nil, err
 	}
 	var response jsonResponse
 	if err = json.Unmarshal(r, &response); err != nil {
-		return
+		return nil, err
 	}
 	if err = handleErr(response); err != nil {
-		return
+		return nil, err
 	}
-	err = json.Unmarshal(response.Result, &marketSummary)
-	return
+
+	marketSummary := []*MarketSummary{}
+	if err = json.Unmarshal(response.Result, &marketSummary); err != nil {
+		return nil, err
+	}
+
+	return marketSummary, nil
 }
 
 // GetOrderBook is used to get retrieve the orderbook for a given market
 // market: a string literal for the market (ex: BTC-LTC)
 // cat: buy, sell or both to identify the type of orderbook to return.
 // depth: how deep of an order book to retrieve. Max is 100
-func (b *Bittrex) GetOrderBook(market, cat string, depth int) (orderBook OrderBook, err error) {
+func (b *Bittrex) GetOrderBook(market, cat string, depth int) (*OrderBook, error) {
 	if cat != "buy" && cat != "sell" && cat != "both" {
 		cat = "both"
 	}
@@ -169,16 +194,17 @@ func (b *Bittrex) GetOrderBook(market, cat string, depth int) (orderBook OrderBo
 	}
 	r, err := b.client.do("GET", fmt.Sprintf("public/getorderbook?market=%s&type=%s&depth=%d", strings.ToUpper(market), cat, depth), "", false)
 	if err != nil {
-		return
+		return nil, err
 	}
 	var response jsonResponse
 	if err = json.Unmarshal(r, &response); err != nil {
-		return
+		return nil, err
 	}
 	if err = handleErr(response); err != nil {
-		return
+		return nil, err
 	}
 
+	orderBook := OrderBook{}
 	if cat == "buy" {
 		err = json.Unmarshal(response.Result, &orderBook.Buy)
 	} else if cat == "sell" {
@@ -186,15 +212,18 @@ func (b *Bittrex) GetOrderBook(market, cat string, depth int) (orderBook OrderBo
 	} else {
 		err = json.Unmarshal(response.Result, &orderBook)
 	}
+	if err != nil {
+		return nil, err
+	}
 
-	return
+	return &orderBook, nil
 }
 
 // GetOrderBookBuySell is used to get retrieve the buy or sell side of an orderbook for a given market
 // market: a string literal for the market (ex: BTC-LTC)
 // cat: buy or sell to identify the type of orderbook to return.
 // depth: how deep of an order book to retrieve. Max is 100
-func (b *Bittrex) GetOrderBookBuySell(market, cat string, depth int) (orderb []Orderb, err error) {
+func (b *Bittrex) GetOrderBookBuySell(market, cat string, depth int) ([]*Orderb, error) {
 	if cat != "buy" && cat != "sell" {
 		cat = "buy"
 	}
@@ -206,35 +235,43 @@ func (b *Bittrex) GetOrderBookBuySell(market, cat string, depth int) (orderb []O
 	}
 	r, err := b.client.do("GET", fmt.Sprintf("public/getorderbook?market=%s&type=%s&depth=%d", strings.ToUpper(market), cat, depth), "", false)
 	if err != nil {
-		return
+		return nil, err
 	}
 	var response jsonResponse
 	if err = json.Unmarshal(r, &response); err != nil {
-		return
+		return nil, err
 	}
 	if err = handleErr(response); err != nil {
-		return
+		return nil, err
 	}
-	err = json.Unmarshal(response.Result, &orderb)
-	return
+
+	orderb := []*Orderb{}
+	if err = json.Unmarshal(response.Result, &orderb); err != nil {
+		return nil, err
+	}
+
+	return orderb, nil
 }
 
 // GetMarketHistory is used to retrieve the latest trades that have occured for a specific market.
 // market a string literal for the market (ex: BTC-LTC)
-func (b *Bittrex) GetMarketHistory(market string) (trades []Trade, err error) {
+func (b *Bittrex) GetMarketHistory(market string) ([]*Trade, error) {
 	r, err := b.client.do("GET", fmt.Sprintf("public/getmarkethistory?market=%s", strings.ToUpper(market)), "", false)
 	if err != nil {
-		return
+		return nil, err
 	}
 	var response jsonResponse
 	if err = json.Unmarshal(r, &response); err != nil {
-		return
+		return nil, err
 	}
 	if err = handleErr(response); err != nil {
-		return
+		return nil, err
 	}
-	err = json.Unmarshal(response.Result, &trades)
-	return
+	trades := []*Trade{}
+	if err = json.Unmarshal(response.Result, &trades); err != nil {
+		return nil, err
+	}
+	return trades, nil
 }
 
 // Market
@@ -332,79 +369,91 @@ func (b *Bittrex) CancelOrder(orderID string) (err error) {
 // GetOpenOrders returns orders that you currently have opened.
 // If market is set to "all", GetOpenOrders return all orders
 // If market is set to a specific order, GetOpenOrders return orders for this market
-func (b *Bittrex) GetOpenOrders(market string) (openOrders []Order, err error) {
+func (b *Bittrex) GetOpenOrders(market string) ([]*OrderHistory, error) {
 	ressource := "market/getopenorders"
 	if market != "all" {
 		ressource += "?market=" + strings.ToUpper(market)
 	}
 	r, err := b.client.do("GET", ressource, "", true)
 	if err != nil {
-		return
+		return nil, err
 	}
 	var response jsonResponse
 	if err = json.Unmarshal(r, &response); err != nil {
-		return
+		return nil, err
 	}
 	if err = json.Unmarshal(r, &response); err != nil {
-		return
+		return nil, err
 	}
-	err = json.Unmarshal(response.Result, &openOrders)
-	return
+	openOrders := []*OrderHistory{}
+	if err = json.Unmarshal(response.Result, &openOrders); err != nil {
+		return nil, err
+	}
+	return openOrders, nil
 }
 
 // Account
 
 // GetBalances is used to retrieve all balances from your account
-func (b *Bittrex) GetBalances() (balances []Balance, err error) {
+func (b *Bittrex) GetBalances() ([]*Balance, error) {
 	r, err := b.client.do("GET", "account/getbalances", "", true)
 	if err != nil {
-		return
+		return nil, err
 	}
 	var response jsonResponse
 	if err = json.Unmarshal(r, &response); err != nil {
-		return
+		return nil, err
 	}
 	if err = handleErr(response); err != nil {
-		return
+		return nil, err
 	}
-	err = json.Unmarshal(response.Result, &balances)
-	return
+	balances := []*Balance{}
+	if err = json.Unmarshal(response.Result, &balances); err != nil {
+		return nil, err
+	}
+	return balances, nil
 }
 
 // Getbalance is used to retrieve the balance from your account for a specific currency.
 // currency: a string literal for the currency (ex: LTC)
-func (b *Bittrex) GetBalance(currency string) (balance Balance, err error) {
+func (b *Bittrex) GetBalance(currency string) (*Balance, error) {
 	r, err := b.client.do("GET", "account/getbalance?currency="+strings.ToUpper(currency), "", true)
 	if err != nil {
-		return
+		return nil, err
 	}
 	var response jsonResponse
 	if err = json.Unmarshal(r, &response); err != nil {
-		return
+		return nil, err
 	}
 	if err = handleErr(response); err != nil {
-		return
+		return nil, err
 	}
-	err = json.Unmarshal(response.Result, &balance)
-	return
+	balance := Balance{}
+	if err = json.Unmarshal(response.Result, &balance); err != nil {
+		return nil, err
+	}
+	return &balance, nil
 }
 
 // GetDepositAddress is sed to generate or retrieve an address for a specific currency.
 // currency a string literal for the currency (ie. BTC)
-func (b *Bittrex) GetDepositAddress(currency string) (address Address, err error) {
+func (b *Bittrex) GetDepositAddress(currency string) (*Address, error) {
 	r, err := b.client.do("GET", "account/getdepositaddress?currency="+strings.ToUpper(currency), "", true)
 	if err != nil {
-		return
+		return nil, err
 	}
 	var response jsonResponse
 	if err = json.Unmarshal(r, &response); err != nil {
-		return
+		return nil, err
 	}
 	if err = handleErr(response); err != nil {
-		return
+		return nil, err
 	}
-	err = json.Unmarshal(response.Result, &address)
-	return
+	address := Address{}
+	if err = json.Unmarshal(response.Result, &address); err != nil {
+		return nil, err
+	}
+	return &address, nil
 }
 
 // Withdraw is used to withdraw funds from your account.
@@ -431,91 +480,104 @@ func (b *Bittrex) Withdraw(address, currency string, quantity float64) (withdraw
 
 // GetOrderHistory used to retrieve your order history.
 // market string literal for the market (ie. BTC-LTC). If set to "all", will return for all market
-func (b *Bittrex) GetOrderHistory(market string) (orders []Order, err error) {
+func (b *Bittrex) GetOrderHistory(market string) ([]*OrderHistory, error) {
 	ressource := "account/getorderhistory"
 	if market != "all" {
 		ressource += "?market=" + market
 	}
 	r, err := b.client.do("GET", ressource, "", true)
 	if err != nil {
-		return
+		return nil, err
 	}
 	var response jsonResponse
 	if err = json.Unmarshal(r, &response); err != nil {
-		return
+		return nil, err
 	}
 	if err = handleErr(response); err != nil {
-		return
+		return nil, err
 	}
-	err = json.Unmarshal(response.Result, &orders)
-	return
+	orders := []*OrderHistory{}
+	if err = json.Unmarshal(response.Result, &orders); err != nil {
+		return nil, err
+	}
+	return orders, nil
 }
 
 // GetWithdrawalHistory is used to retrieve your withdrawal history
 // currency string a string literal for the currency (ie. BTC). If set to "all", will return for all currencies
-func (b *Bittrex) GetWithdrawalHistory(currency string) (withdrawals []Withdrawal, err error) {
+func (b *Bittrex) GetWithdrawalHistory(currency string) ([]*Withdrawal, error) {
 	ressource := "account/getwithdrawalhistory"
 	if currency != "all" {
 		ressource += "currency=" + currency
 	}
 	r, err := b.client.do("GET", ressource, "", true)
 	if err != nil {
-		return
+		return nil, err
 	}
 	var response jsonResponse
 	if err = json.Unmarshal(r, &response); err != nil {
-		return
+		return nil, err
 	}
 	if err = handleErr(response); err != nil {
-		return
+		return nil, err
 	}
-	err = json.Unmarshal(response.Result, &withdrawals)
-	return
+	withdrawals := []*Withdrawal{}
+	if err = json.Unmarshal(response.Result, &withdrawals); err != nil {
+		return nil, err
+	}
+	return withdrawals, nil
 }
 
 // GetDepositHistory is used to retrieve your deposit history
 // currency string a string literal for the currency (ie. BTC). If set to "all", will return for all currencies
-func (b *Bittrex) GetDepositHistory(currency string) (deposits []Deposit, err error) {
+func (b *Bittrex) GetDepositHistory(currency string) ([]*Deposit, error) {
 	ressource := "account/getdeposithistory"
 	if currency != "all" {
 		ressource += "currency=" + currency
 	}
 	r, err := b.client.do("GET", ressource, "", true)
 	if err != nil {
-		return
+		return nil, err
 	}
 	var response jsonResponse
 	if err = json.Unmarshal(r, &response); err != nil {
-		return
+		return nil, err
 	}
 	if err = handleErr(response); err != nil {
-		return
+		return nil, err
 	}
-	err = json.Unmarshal(response.Result, &deposits)
-	return
+	deposits := []*Deposit{}
+	if err = json.Unmarshal(response.Result, &deposits); err != nil {
+		return nil, err
+	}
+	return deposits, nil
 }
 
-func (b *Bittrex) GetOrder(order_uuid string) (order Order2, err error) {
+func (b *Bittrex) GetOrder(order_uuid string) (*Order, error) {
 
 	ressource := "account/getorder?uuid=" + order_uuid
 
 	r, err := b.client.do("GET", ressource, "", true)
 	if err != nil {
-		return
+		return nil, err
 	}
 	var response jsonResponse
 	if err = json.Unmarshal(r, &response); err != nil {
-		return
+		return nil, err
 	}
 	if err = json.Unmarshal(r, &response); err != nil {
-		return
+		return nil, err
 	}
-	err = json.Unmarshal(response.Result, &order)
-	return
+
+	order := Order{}
+	if err = json.Unmarshal(response.Result, &order); err != nil {
+		return nil, err
+	}
+	return &order, nil
 }
 
 // GetTicks is used to get ticks history values for a market.
-func (b *Bittrex) GetTicks(market string, interval Interval) ([]Candle, error) {
+func (b *Bittrex) GetTicks(market string, interval Interval) ([]*Candle, error) {
 	_, ok := CANDLE_INTERVALS[interval]
 	if !ok {
 		return nil, errors.New("wrong interval")
@@ -538,8 +600,8 @@ func (b *Bittrex) GetTicks(market string, interval Interval) ([]Candle, error) {
 	if err := handleErr(response); err != nil {
 		return nil, err
 	}
-	var candles []Candle
 
+	candles := []*Candle{}
 	if err := json.Unmarshal(response.Result, &candles); err != nil {
 		return nil, fmt.Errorf("could not unmarshal candles: %v", err)
 	}

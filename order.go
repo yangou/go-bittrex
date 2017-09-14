@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-type Order struct {
+type OrderHistory struct {
 	OrderUuid         string
 	Exchange          string
 	TimeStamp         time.Time
@@ -19,7 +19,7 @@ type Order struct {
 }
 
 // For getorder
-type Order2 struct {
+type Order struct {
 	AccountId                  string
 	OrderUuid                  string `json:"OrderUuid"`
 	Exchange                   string `json:"Exchange"`
@@ -45,7 +45,7 @@ type Order2 struct {
 	ConditionTarget            string
 }
 
-func (o *Order) UnmarshalJSON(data []byte) (err error) {
+func (o *OrderHistory) UnmarshalJSON(data []byte) (err error) {
 	s := struct {
 		OrderUuid         string  `json:"OrderUuid"`
 		Exchange          string  `json:"Exchange"`
@@ -69,7 +69,7 @@ func (o *Order) UnmarshalJSON(data []byte) (err error) {
 		}
 	}
 
-	*o = Order{
+	*o = OrderHistory{
 		OrderUuid:         s.OrderUuid,
 		Exchange:          s.Exchange,
 		TimeStamp:         t,
@@ -84,7 +84,7 @@ func (o *Order) UnmarshalJSON(data []byte) (err error) {
 	return nil
 }
 
-func (o Order) MarshalJSON() ([]byte, error) {
+func (o OrderHistory) MarshalJSON() ([]byte, error) {
 	t := ""
 	if !o.TimeStamp.IsZero() {
 		t = o.TimeStamp.Format(TIME_FORMAT)
