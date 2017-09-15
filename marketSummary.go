@@ -14,3 +14,9 @@ type MarketSummary struct {
 	PrevDay        float64 `json:"PrevDay"`
 	TimeStamp      string  `json:"TimeStamp"`
 }
+
+type MarketSummaries []*MarketSummary
+
+func (m MarketSummaries) Len() int           { return len(m) }
+func (m MarketSummaries) Swap(i, j int)      { m[i], m[j] = m[j], m[i] }
+func (m MarketSummaries) Less(i, j int) bool { return m[i].BaseVolume > m[j].BaseVolume }
